@@ -23,6 +23,7 @@
  */
 
 #include <linux/console.h>
+#include <linux/dmi.h>
 #include <linux/vga_switcheroo.h>
 
 #include <drm/drm_drv.h>
@@ -1135,6 +1136,19 @@ static int __init i915_init(void)
 		/* Silently fail loading to not upset userspace. */
 		DRM_DEBUG_DRIVER("KMS disabled.\n");
 		return 0;
+	}
+
+	/*
+	 * Set the default value of i915.enable_psr to 1 on these
+	 * Dell platforms.
+	 */
+	if (i915_modparams.enable_psr == -1 &&
+	    dmi_match(DMI_SYS_VENDOR, "Dell Inc.") &&
+	    (dmi_match(DMI_PRODUCT_NAME, "XPS 15 9560") ||
+	     dmi_match(DMI_PRODUCT_NAME, "XPS 13 9360") ||
+	     dmi_match(DMI_PRODUCT_NAME, "XPS 15 9570") ||
+	     dmi_match(DMI_PRODUCT_NAME, "XPS 13 9370"))) {
+		i915_modparams.enable_psr = 1;
 	}
 
 	err = pci_register_driver(&i915_pci_driver);
